@@ -1,0 +1,40 @@
+# config.yaml
+
+general:
+  drop_duplicates: true
+  strict_mode: false   # future use (validation behavior)
+
+columns:
+
+  user_id:
+    dtype: str
+    required: true
+
+  name:
+    dtype: str
+    text_cleaning:
+      strip: true
+      title: true
+
+  age:
+    dtype: int
+    required: true
+    missing: median
+    outliers:
+      method: cap_percentile
+      lower: 0.10
+      upper: 0.90
+
+  salary:
+    dtype: float
+    missing: mean
+    outliers:
+      method: cap_percentile
+      lower: 0.05
+      upper: 0.95
+
+  signup_date:
+    dtype: datetime
+
+  is_active:
+    dtype: bool
