@@ -1,40 +1,30 @@
-# config.yaml
-
 general:
-  drop_duplicates: true
-  strict_mode: false   # future use (validation behavior)
+  strict_mode: false
 
 columns:
 
   user_id:
+    aliases: [id, userId, customer_id]
+    fuzzy_match: true
     dtype: str
-    required: true
+    required: false
 
   name:
+    aliases: [full_name, username]
     dtype: str
     text_cleaning:
       strip: true
       title: true
 
   age:
+    aliases: [years, age_in_years]
     dtype: int
-    required: true
     missing: median
+
+  salary:
+    aliases: [income, pay]
+    dtype: float
     outliers:
       method: cap_percentile
       lower: 0.10
       upper: 0.90
-
-  salary:
-    dtype: float
-    missing: mean
-    outliers:
-      method: cap_percentile
-      lower: 0.05
-      upper: 0.95
-
-  signup_date:
-    dtype: datetime
-
-  is_active:
-    dtype: bool

@@ -2,6 +2,7 @@
 import pandas as pd
 
 from cleanflow.config.loader import load_config
+from cleanflow.core import mapping
 from cleanflow.utils.logger import get_logger
 from cleanflow.utils.tracker import ChangeTracker
 
@@ -28,8 +29,11 @@ class CleanFlow:
 
     def run(self, df: pd.DataFrame) -> pd.DataFrame:
         logger.info("Starting cleaning pipeline")
+        
+        # mapping columns
+        df = mapping.map_columns(df, self.config, self.tracker)
 
-        # Validate incoming data
+        # validate incoming data
         validate_dataframe(df, self.config)
 
         try:

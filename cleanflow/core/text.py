@@ -17,10 +17,10 @@ def clean_text(df: pd.DataFrame, config: dict, tracker) -> pd.DataFrame:
 
         original = df[col].copy()
 
-        if text_rules.get("lowercase"):
+        if text_rules.get("lower"):
             df[col] = df[col].str.lower()
 
-        if text_rules.get("uppercase"):
+        if text_rules.get("upper"):
             df[col] = df[col].str.upper()
 
         if text_rules.get("strip"):

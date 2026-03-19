@@ -1,0 +1,83 @@
+general:
+  strict_mode: false
+columns:
+  age:
+    aliases:
+    - 'Age '
+    dtype: int
+    missing: mode
+    numeric_cleaning:
+      strip: true
+      remove_special_chars: true
+    outliers:
+      method: cap_percentile
+      lower: 0.1
+      upper: 0.9
+  gender:
+    aliases:
+    - ' Gender'
+    dtype: str
+    missing: mode
+    text_cleaning:
+      strip: true
+      capitalize: true
+      lower: false
+      upper: false
+  bmi:
+    aliases:
+    - BMI
+    dtype: float
+    missing: median
+    numeric_cleaning:
+      strip: true
+      remove_special_chars: true
+    outliers:
+      method: cap_percentile
+      lower: 0.1
+      upper: 0.9
+  children:
+    aliases:
+    - 'Children '
+    dtype: int
+    missing: mode
+    numeric_cleaning:
+      strip: true
+      remove_special_chars: true
+    outliers:
+      method: cap_percentile
+      lower: 0.1
+      upper: 0.9
+  smoker:
+    aliases:
+    - Smoker?
+    dtype: str
+    missing: mode
+    text_cleaning:
+      strip: true
+      capitalize: true
+      lower: false
+      upper: false
+  state:
+    aliases:
+    - ' State '
+    dtype: str
+    missing: drop
+    text_cleaning:
+      strip: true
+      capitalize: true
+      lower: false
+      upper: false
+  hospital_bill:
+    aliases:
+    - Hospital_Bill
+    dtype: int
+    missing: drop
+    numeric_cleaning:
+      strip: true
+      remove_special_chars: true
+    outliers:
+      method: cap_percentile
+      lower: 0.1
+      upper: 0.9
+duplicates:
+  drop: true
