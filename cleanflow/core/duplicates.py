@@ -10,8 +10,8 @@ def remove_duplicates(df: pd.DataFrame, config: dict, tracker) -> pd.DataFrame:
 
     df = df.drop_duplicates()
 
-    after = len(df)
+    removed = before - len(df)
 
-    tracker.log(f"duplicates: removed {before - after} rows")
+    tracker.log_global("duplicates removed", removed)
 
     return df

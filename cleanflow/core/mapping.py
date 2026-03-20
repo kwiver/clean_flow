@@ -1,25 +1,20 @@
 import pandas as pd
 
 def map_columns(df: pd.DataFrame, config: dict, tracker) -> pd.DataFrame:
-    column_config = config.get("columns", {})
+    column_map = {}
 
-    rename_dict = {}
-
-    for standard_name, rules in column_config.items():
+    for standard_col, rules in config.get("columns", {}).items():
         aliases = rules.get("aliases", [])
 
-        # check if standard name already exists
-        if standard_name in df.columns:
-            continue
-
-        # look for alias in dataset
         for alias in aliases:
             if alias in df.columns:
-                rename_dict[alias] = standard_name
-                tracker.log(f"Column '{alias}' mapped to '{standard_name}'")
-                break
+                column_map[alias] = standard_col
 
-    # apply renaming
-    df = df.rename(columns=rename_dict)
+    df = df.rename(columns=column_map)
+
+    
+    if tracker:
+        for old, new in column_map.items():
+            tracker.log(new, "Column mapped", 1)
 
     return df

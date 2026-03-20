@@ -48,17 +48,40 @@ def generate_config(df):
             print("Text cleaning options:")
 
             strip = input(" - Strip spaces? (y/n): ").lower() == "y"
-            capitalize = input(" - Capitalize? (y/n): ").lower() == "y"
+            title = input(" - Title case? (y/n): ").lower() == "y"
             lower = input(" - Convert to lowercase? (y/n): ").lower() == "y"
             upper = input(" - Convert to uppercase? (y/n): ").lower() == "y"
 
-            if strip or capitalize or lower or upper:
+            if strip or title or lower or upper:
                 column_rules["text_cleaning"] = {
                     "strip": strip,
-                    "capitalize": capitalize,
+                    "title": title,
                     "lower": lower,
                     "upper": upper,
                 }
+                
+            mapping_choice = input("Apply value mapping? (y/n): ").lower()
+
+            if mapping_choice == "y":
+                mapping = {}
+                print(f"Column '{col}' unique values: {df[col].unique()}")
+                print("Enter mapping in format: standard:value1,value2,value3")
+                print("Example: male:m,male,MALE")
+
+                while True:
+                    entry = input("Mapping (or press Enter to finish): ").strip()
+                    if not entry:
+                        break
+
+                    try:
+                        key, values = entry.split(":")
+                        values_list = [v.strip() for v in values.split(",")]
+                        mapping[key.strip()] = values_list
+                    except:
+                        print("Invalid format. Try again.")
+
+                if mapping:
+                    column_rules["value_mapping"] = mapping
 
         if dtype in ["int", "float"]:
             print("Numeric cleaning options:")
@@ -102,3 +125,4 @@ def save_config(config, path="configs/generated.yaml"):
         yaml.dump(config, f, sort_keys=False)
 
     print(f"\n✅ Config saved to {path}")
+    

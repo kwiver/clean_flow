@@ -1,86 +1,62 @@
-# import necessary libs
 import pandas as pd
 
 from cleanflow.config.loader import load_config
-from cleanflow.core import mapping
 from cleanflow.utils.logger import get_logger
+
+from cleanflow.core.mapping import map_columns
+from cleanflow.validation.validator import validate_dataframe, validate_config
+from cleanflow.core.text import clean_text
+from cleanflow.core.mapping_values import apply_value_mapping
+from cleanflow.core.types import fix_types
+from cleanflow.core.missing import standardize_missing, handle_missing
+from cleanflow.core.outliers import handle_outliers
+from cleanflow.core.duplicates import remove_duplicates
 from cleanflow.utils.tracker import ChangeTracker
 
-from cleanflow.validation.validator import (
-    validate_config,
-    validate_dataframe,
-)
 
-from cleanflow.core import text, types, missing, duplicates, outliers
-
-
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 class CleanFlow:
     def __init__(self, config_path: str):
         self.config = load_config(config_path)
-
-        # Validate config immediately
-        validate_config(self.config)
-
         self.strict_mode = self.config.get("general", {}).get("strict_mode", False)
-        self.tracker = ChangeTracker()
 
     def run(self, df: pd.DataFrame) -> pd.DataFrame:
         logger.info("Starting cleaning pipeline")
-        
-        # mapping columns
-        df = mapping.map_columns(df, self.config, self.tracker)
 
-        # validate incoming data
+        tracker = ChangeTracker()
+
+        logger.info("Step 1: Column mapping")
+        df = map_columns(df, self.config, tracker)
+
+        logger.info("Step 2: Validation")
         validate_dataframe(df, self.config)
 
-        try:
-            # Step 1: Text Cleaning
-            logger.info("Step 1: Text cleaning")
-            df = text.clean_text(df, self.config, self.tracker)
+        logger.info("Step 3: Text cleaning")
+        df = clean_text(df, self.config, tracker)
 
-            # Step 2: Type Fixing
-            logger.info("Step 2: Type fixing")
-            df = types.fix_types(df, self.config, self.tracker)
+        logger.info("Step 4: Value mapping")
+        df = apply_value_mapping(df, self.config, tracker)
 
-            # Step 3: Missing Values
-            logger.info("Step 3: Handling missing values")
-            df = missing.handle_missing(df, self.config, self.tracker)
+        logger.info("Step 5: Type fixing")
+        df = fix_types(df, self.config, tracker)
+        
+        logger.info("Step 6a: Standardizing missing value markers")
+        df = standardize_missing(df, tracker=tracker)
 
-            # Step 4: Outliers
-            logger.info("Step 4: Handling outliers")
-            df = outliers.handle_outliers(df, self.config, self.tracker)
+        logger.info("Step 6b: Handling missing values")
+        df = handle_missing(df, self.config, tracker)
 
-            # Step 5: Duplicates
-            logger.info("Step 5: Removing duplicates")
-            df = duplicates.remove_duplicates(df, self.config, self.tracker)
+        logger.info("Step 7: Handling outliers")
+        df = handle_outliers(df, self.config, tracker)
 
-        except Exception as e:
-            if self.strict_mode:
-                logger.error("❌ Pipeline failed in strict mode")
-                raise
-            else:
-                logger.warning(f"⚠️ Pipeline error (continuing): {e}")
+        logger.info("Step 8: Removing duplicates")
+        if self.config.get("duplicates", {}).get("drop"):
+            df = remove_duplicates(df, self.config, tracker)
 
-        logger.info("✅ Cleaning completed")
-
-        # Print summary
-        self._print_summary()
+    
+        logger.info("✅ Cleaning completed\n")
+        tracker.summary()
 
         return df
-
-    def _print_summary(self):
-        print("\n" + "=" * 40)
-        print("🧼 CLEANFLOW SUMMARY")
-        print("=" * 40)
-
-        summary = self.tracker.summary()
-
-        if summary:
-            print(summary)
-        else:
-            print("No changes were made.")
-
-        print("=" * 40)

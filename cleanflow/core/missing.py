@@ -1,5 +1,22 @@
 # import necessary libs
 import pandas as pd
+import numpy as np
+
+def standardize_missing(df: pd.DataFrame, missing_values=None, tracker=None):
+    if missing_values is None:
+        missing_values = ["?", "unknown", "Unknown", "NA", "N/A", "nan", "NaN", ""]
+    
+    original_counts = df.isna().sum().to_dict()
+    df.replace(to_replace=missing_values, value=np.nan, inplace=True)
+    
+    if tracker:
+        for col, orig_count in original_counts.items():
+            new_count = df[col].isna().sum()
+            changed = new_count - orig_count
+            if changed > 0:
+                tracker.log(col, "Standardized missing values", changed)
+    
+    return df
 
 
 def handle_missing(df: pd.DataFrame, config: dict, tracker) -> pd.DataFrame:
@@ -7,34 +24,34 @@ def handle_missing(df: pd.DataFrame, config: dict, tracker) -> pd.DataFrame:
         if col not in df.columns:
             continue
 
-        if "missing" not in rules:
+        method = rules.get("missing")
+        if not method:
             continue
 
-        before = df[col].isna().sum()
-        strategy = rules["missing"]
+        original_nulls = df[col].isna().sum()
 
-        if strategy == "mean":
+        if method == "mean":
             df[col] = df[col].fillna(df[col].mean())
 
-        elif strategy == "median":
+        elif method == "median":
             df[col] = df[col].fillna(df[col].median())
 
-        elif strategy == "mode":
-            df[col] = df[col].fillna(df[col].mode().iloc[0])
+        elif method == "mode":
+            df[col] = df[col].fillna(df[col].mode()[0])
 
-        elif strategy == "drop":
-            df = df.dropna(subset=[col])
+        elif method == "drop":
+            before = len(df)
+            df = df[df[col].notna()]
+            removed = before - len(df)
 
-        elif strategy == "zero":
-            df[col] = df[col].fillna(0)
-
-        else:
+            if tracker and removed > 0:
+                tracker.log(col, "Rows dropped (missing)", int(removed))
             continue
 
-        after = df[col].isna().sum()
+        new_nulls = df[col].isna().sum()
+        filled = original_nulls - new_nulls
 
-        tracker.log(
-            f"{col}: missing handled using '{strategy}' ({before - after} values affected)"
-        )
+        if tracker and filled > 0:
+            tracker.log(col, "Missing filled", int(filled))
 
     return df

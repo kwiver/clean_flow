@@ -20,9 +20,17 @@ columns:
     missing: mode
     text_cleaning:
       strip: true
-      capitalize: true
+      title: true
       lower: false
       upper: false
+    value_mapping:
+      Male:
+      - M
+      - male
+      Female:
+      - F
+      - fem
+      - ''
   bmi:
     aliases:
     - BMI
@@ -54,23 +62,32 @@ columns:
     missing: mode
     text_cleaning:
       strip: true
-      capitalize: true
+      title: true
       lower: false
       upper: false
+    value_mapping:
+      'Yes':
+      - 'yes'
+      - Y
+      - smoker
+      'No':
+      - N
+      - 'no'
+      - non-smoker
   state:
     aliases:
     - ' State '
     dtype: str
-    missing: drop
+    missing: mode
     text_cleaning:
       strip: true
-      capitalize: true
+      title: true
       lower: false
       upper: false
   hospital_bill:
     aliases:
     - Hospital_Bill
-    dtype: int
+    dtype: float
     missing: drop
     numeric_cleaning:
       strip: true
